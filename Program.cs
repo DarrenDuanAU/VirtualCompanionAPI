@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,16 +9,22 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 添加自定义服务（后续会实现）
+// 添加 ChatService
 builder.Services.AddScoped<IChatService, ChatService>();
 
-// 添加 JWT 验证（可拓展）
+// JWT 配置（你可以从 appsettings.json 获取 key）
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "your_default_secret_key_here";
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            // 你的 JWT 校验规则
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
 
